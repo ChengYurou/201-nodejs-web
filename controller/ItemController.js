@@ -1,6 +1,5 @@
 import Item from '../models/item';
 
-
 export default class ItemController {
   getAll(req, res, next) {
     Item.find({}, (err, doc)=> {
