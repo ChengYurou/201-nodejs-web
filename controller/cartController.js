@@ -1,91 +1,92 @@
 import Cart from '../model/cart';
-import Item from '../model/item'
+const constant = require('../config/constant');
 import async from 'async';
 
+const loadItem = (items) => {
+  const result = items.map(({count, item}) => {
+    return {uri: `items/${item}`, count};
+  });
+
+  return result;
+};
+
 export default class CartController {
+
   getAll(req, res, next) {
-    Cart.find({}, (err, docs) => {
-      if (err) {
-        next(err);
-      }
-      res.send(docs);
-    })
-  }
+    async.series({
+      items: (cb) => {
+        Cart.find({}, (err, docs) => {
+          if (err) {
+            return next(err);
+          }
+          let carts = docs.map((cart) => {
+            let data = cart.toJSON();
+            data.items = loadItem(data.items);
 
-  createCart(req, res, next) {
-    Cart.create(req.body, (err, docs) => {
-      if (err) {
-        next(err);
-      } else {
-        res.sendStatus(201);
-      }
-    })
-  }
+            return data;
+          });
 
-  updateCart(req, res, next) {
-    Cart.update({_id: req.params.cartId}, {$set: req.body}, (err, docs) => {
-      if (err) {
-        next(err);
-      }
-      res.sendStatus(204)
-    })
-  }
-
-  deleteCart(req, res, next) {
-    Cart.remove({_id: req.params.cartId}, (err, docs) => {
-      if (err) {
-        next(err);
-      }
-      res.sendStatus(204)
-    })
-  }
-
-  addNewItemToCart(req, res, next) {
-    const cartId = req.params.cartId;
-    async.waterfall([
-      (done) => {
-        Item.create(req.body, (err, docs) => {
-          done(err, docs);
+          cb(null, carts);
         })
       },
-      (doc, done) => {
-        Cart.findOne({_id: cartId}, (err, docs) => {
-          docs.items.push(doc._id);
-          docs.save(done);
-        })
+      totalCount: (cb) => {
+        Cart.count(cb);
       }
-    ], (err, doc) => {
+    }, (err, result) => {
       if (err) {
-        next(err);
-      } else {
-        res.sendStatus(201);
+        return next(err);
       }
+      return res.status(constant.httpCode.OK).send(result);
     })
   }
 
-  addOldItemToCart(req, res, next) {
+  getOne(req, res, next) {
     const cartId = req.params.cartId;
-    const itemId = req.params.itemId;
-    Cart.findOne({_id: cartId}, (err, docs) => {
+    Cart.findById(cartId, (err, docs) => {
       if (err) {
-        next(err);
-      } else {
-        docs.items.push(itemId);
-        docs.save();
-        res.sendStatus(204)
+        return next(err);
       }
+      if (!docs) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+      let data = docs.toJSON();
+      console.log(data)
+      data.items = loadItem(data.items);
+      res.status(constant.httpCode.OK).send(data);
     })
   }
 
-  removeItemFromCart(req, res, next) {
-    const itemId = req.params.itemId;
-    const cartId = req.params.cartId;
-    Cart.findOne({_id: cartId}, (err, docs) => {
-      const itemIndex = docs.items.indexOf(itemId);
-      docs.items.splice(itemIndex, 1);
-      docs.save();
+  delete(req, res, next) {
+    Cart.findOneAndRemove({_id: req.params.cartId}, (err, docs) => {
+      if (err) {
+        return next(err);
+      }
+      if (!docs) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+      return res.sendStatus(constant.httpCode.NO_CONTENT);
+    })
+  }
 
-      res.sendStatus(204);
+  create(req, res, next) {
+    Cart.create(req.body, (err, docs) => {
+      if (err) {
+        return next(err);
+      }
+      return res.status(constant.httpCode.CREATED).send({uri: `carts/${docs._id}`});
+    })
+  }
+
+  update(req, res, next) {
+    Cart.findOneAndUpdate({_id: req.params.cartId}, req.body, (err, docs) => {
+      if (err) {
+        return next(err);
+      }
+      if (!docs) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+
+      return res.sendStatus(constant.httpCode.NO_CONTENT);
     })
   }
 }
