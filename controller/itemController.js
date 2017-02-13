@@ -1,4 +1,4 @@
-import Item from '../models/item';
+import Item from '../model/item';
 
 export default class ItemController {
   getAll(req, res, next) {

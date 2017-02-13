@@ -1,5 +1,5 @@
-import Cart from '../models/cart';
-import Item from '../models/item'
+import Cart from '../model/cart';
+import Item from '../model/item'
 import async from 'async';
 
 export default class CartController {

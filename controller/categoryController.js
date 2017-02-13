@@ -1,5 +1,5 @@
-import Category from '../models/category';
-import Item from '../models/item';
+import Category from '../model/category';
+import Item from '../model/item';
 import async from 'async';
 
 export default class CategoryController {
