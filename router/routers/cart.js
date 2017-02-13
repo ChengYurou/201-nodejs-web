@@ -1,5 +1,5 @@
-import {Router} from 'express';
-import CartController from '../../controller/cartController';
+const {Router} = require('express');
+const CartController = require('../../controller/cartController')
 
 const router = Router();
 const cartCtrl = new CartController();

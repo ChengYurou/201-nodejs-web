@@ -1,6 +1,5 @@
-import Category from '../model/category';
-import Item from '../model/item';
-import async from 'async';
+const Category = require('../model/category');
+const async  = require('async');
 
 export default class CategoryController {
   getAll(req, res, next) {

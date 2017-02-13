@@ -1,6 +1,6 @@
-import Cart from '../model/cart';
+const Cart = require('../model/cart');
 const constant = require('../config/constant');
-import async from 'async';
+const async = require('async');
 
 const loadItem = (items) => {
   const result = items.map(({count, item}) => {

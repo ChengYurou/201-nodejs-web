@@ -1,5 +1,5 @@
-import {Router} from 'express';
-import CategoryController from '../../controller/CategoryController';
+const {Router} = require('express');
+const CategoryController = require('../../controller/categoryController');
 
 const router = Router();
 const categoryCtrl = new CategoryController();

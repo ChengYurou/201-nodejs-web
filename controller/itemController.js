@@ -1,6 +1,6 @@
-import Item from '../model/item';
-import constant from '../config/constant';
-import async from 'async';
+const Item = require('../model/item');
+const constant = require('../config/constant');
+const async = require('async');
 
 export default class ItemController {
   getAll(req, res, next) {

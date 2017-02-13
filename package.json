@@ -6,7 +6,8 @@
   "scripts": {
     "babel-node": "babel-node",
     "start": "nodemon --exec npm run babel-node -- app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "refreshMongo": "babel-node  ./tool/mongoTool.js"
   },
   "author": "",
   "license": "ISC",
