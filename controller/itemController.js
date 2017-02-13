@@ -1,56 +1,72 @@
 import Item from '../model/item';
+import constant from '../config/constant';
+import async from 'async';
 
 export default class ItemController {
   getAll(req, res, next) {
-    Item.find({}, (err, doc)=> {
-      if (err) {
-        throw err;
-      } else {
-        res.status(200).send(doc);
+    async.series({
+      items: (cb) => {
+        Item.find({})
+            .populate('category')
+            .exec(cb)
+      },
+      totalCount: (cb) => {
+        Item.count(cb)
       }
-    });
+    }, (err, result) => {
+      if (err) {
+        return next(err);
+      }
+      return res.status(constant.httpCode.OK).send(result);
+    })
   }
 
-  createItem(req, res, next) {
+  getOne(req, res, next) {
+    const itemId = req.params.itemId;
+    Item.findById(itemId)
+        .populate('category')
+        .exec((err, docs) => {
+          if (err) {
+            return next(err);
+          }
+          if (!docs) {
+            return res.sendStatus(constant.httpCode.NOT_FOUND);
+          }
+          return res.status(constant.httpCode.OK).send(docs);
+        })
+  }
+
+  delete(req, res, next) {
+    Item.findOneAndRemove({_id: req.params.itemId}, (err, doc) => {
+      if (err) {
+        return next(err);
+      }
+      if (!doc) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+      return res.sendStatus(constant.httpCode.NO_CONTENT);
+    })
+  }
+
+  create(req, res, next) {
     Item.create(req.body, (err, doc) => {
       if (err) {
-        throw err;
-      } else {
-        res.sendStatus(201);
+        return next(err);
       }
+      return res.status(constant.httpCode.CREATED).send({uri: `items/${doc._id}`});
     });
   }
 
-  getOneItem(req, res, next) {
-    const id = req.params.id;
-    Item.findOne({_id: id}, (err, doc) => {
+  update(req, res, next) {
+    const itemId = req.params.itemId;
+    Item.findOneAndUpdate({_id: itemId}, {$set: req.body}, (err, doc) => {
       if (err) {
-        throw err;
-      } else {
-        res.send(doc);
+        return next(err);
       }
-    })
-  }
-
-  updateItem(req, res, next) {
-    const id = req.params.id;
-    Item.update({_id: id}, {$set: req.body}, (err, doc) => {
-      if (err) {
-        throw err;
-      } else {
-        res.send(204);
+      if (!doc) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
       }
+      return res.sendStatus(constant.httpCode.NO_CONTENT)
     });
-  }
-
-  deleteItem(req, res, next) {
-    const id = req.params.id;
-    Item.remove({_id: id}, (err, doc) => {
-      if (err) {
-        throw err;
-      } else {
-        res.send(204);
-      }
-    })
   }
 }
