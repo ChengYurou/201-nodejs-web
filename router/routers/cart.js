@@ -10,4 +10,4 @@ router.delete('/:cartId',cartCtrl.delete);
 router.post('/',cartCtrl.create);
 router.put('/:cartId',cartCtrl.update);
 
-export default router;
+module.exports = router;

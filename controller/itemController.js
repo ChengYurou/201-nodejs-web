@@ -2,7 +2,7 @@ const Item = require('../model/item');
 const constant = require('../config/constant');
 const async = require('async');
 
-export default class ItemController {
+class ItemController {
   getAll(req, res, next) {
     async.series({
       items: (cb) => {
@@ -70,3 +70,5 @@ export default class ItemController {
     });
   }
 }
+
+module.exports = ItemController;

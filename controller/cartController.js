@@ -10,7 +10,7 @@ const loadItem = (items) => {
   return result;
 };
 
-export default class CartController {
+class CartController {
 
   getAll(req, res, next) {
     async.series({
@@ -90,3 +90,5 @@ export default class CartController {
     })
   }
 }
+
+module.exports = CartController;

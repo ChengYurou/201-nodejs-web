@@ -10,5 +10,5 @@ router.post('/',itemCtrl.create);
 router.delete('/:itemId',itemCtrl.delete);
 router.put('/:itemId',itemCtrl.update);
 
-export default router;
+module.exports = router;
 

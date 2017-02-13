@@ -1,147 +1,97 @@
 const Category = require('../model/category');
-const async  = require('async');
+const Item = require('../model/item');
+const constant = require('../config/constant');
+const async = require('async');
 
-export default class CategoryController {
+class CategoryController {
   getAll(req, res, next) {
-    Category.find({}, (err, doc) => {
-      if (err) {
-        next(err);
-      } else {
-        res.send(doc);
-      }
-    })
-  }
-
-  getOneCategory(req, res, next) {
-    const categoryId = req.params.categoryId;
-    Category.findOne({_id: categoryId})
-        .populate('Item')
-        .exec((err, doc) => {
-          if (err) {
-            next(err);
-          }
-          res.send(doc);
-        });
-  }
-
-  createCategory(req, res, next) {
-    Category.create(req.body, (err, doc) => {
-      if (err) {
-        next(err);
-      } else {
-        res.sendStatus(201);
-      }
-    })
-  }
-
-  updateCategory(req, res, next) {
-    const categoryId = req.params.categoryId;
-    Category.update({_id: categoryId}, {$set: req.body}, (err, doc) => {
-      if (err) {
-        next(err);
-      } else {
-        res.sendStatus(204);
-      }
-    })
-  }
-
-  deleteCategory(req, res, next) {
-    const categoryId = req.params.categoryId;
-    Category.remove({_id: categoryId}, (err, doc) => {
-      if (err) {
-        next(err);
-      } else {
-        res.sendStatus(204);
-      }
-    })
-  }
-
-  addItemToCategory(req, res, next) {
-    const categoryId = req.params.categoryId;
-
-    async.waterfall([
-      (done) => {
-        Item.create(req.body, (err, docs) => {
-          done(err, docs);
-        })
+    async.series({
+      items: (cb) => {
+        Category.find({}, cb);
       },
-      (doc, done) => {
-        Category.findOne({_id: categoryId}, (err, docs) => {
-          if (err) {
-            done(err, docs);
-          }
-          docs.items.push(doc._id);
-          docs.save(done);
-        })
+      totalCount: (cb) => {
+        Category.count(cb);
       }
-    ], (err, doc) => {
+
+    }, (err, result) => {
       if (err) {
         return next(err);
       }
-
-      return res.sendStatus(201);
+      return res.status(constant.httpCode.OK).send(result);
     })
   }
 
-  updateItemInCategory(req, res, next) {
+  getOne(req, res, next) {
     const categoryId = req.params.categoryId;
-    const itemId = req.params.itemId;
+    Category.findById(categoryId, (err, docs) => {
+      if (err) {
+        return next(err);
+      }
+      if (!docs) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND)
+      }
+      return res.status(constant.httpCode.OK).send(docs);
+    })
+  }
 
+  delete(req, res, next) {
+    const categoryId = req.params.categoryId;
     async.waterfall([
       (done) => {
-        Category.findOne({'items': itemId}, done);
+        Item.find({categoryId}, done);
       },
       (doc, done) => {
         if (doc) {
-          let itemIndex = doc.items.indexOf(itemId);
-          doc.items.splice(itemIndex, 1);
-          doc.save((err, docs) => {
-            done(err, doc);
-          });
-
+          done(true, null);
         } else {
-          done(null, null);
-        }
-      },
-      (doc, done) => {
-        Category.findOne({_id: categoryId}, (err, docs) => {
-          docs.items.push(itemId);
-          docs.save(done);
-        });
-      }
-    ], (err, doc) => {
-      if (err) {
-        return next(err);
-      } else {
-        return res.sendStatus(204);
-      }
-    })
-  }
-
-  removeItemFromCategory(req, res, next) {
-    const itemId = req.params.itemId;
-
-    async.waterfall([
-      (done) => {
-        Category.findOne({'items': itemId}, done);
-      },
-      (doc, done) => {
-        if (doc) {
-          let itemIndex = doc.items.indexOf(itemId);
-          doc.items.splice(itemIndex, 1);
-          doc.save((err, docs) => {
+          Category.findOneAndRemove({_id: category}, (err, docs) => {
+            if (!docs) {
+              done(false, null);
+            }
             done(err, doc);
           })
-        } else {
-          done(null, null);
         }
       }
-    ], (err, doc) => {
+    ], (err) => {
+      if (err === true) {
+        res.sendStatus(constant.httpCode.BAD_REQUEST);
+      }
+      if (err === false) {
+        res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+      res.sendStatus(constant.httpCode.NO_CONTENT)
+    })
+    Category.findOneAndRemove({_id: req.params.categoryId}, (err, docs) => {
       if (err) {
         return next(err);
-      } else {
-        res.sendStatus(204);
       }
+      if (!docs) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+      return res.sendStatus(constant.httpCode.NO_CONTENT);
+    })
+  }
+
+  create(req, res, next) {
+    Category.create(req.body, (err, docs) => {
+      if (err) {
+        return next(err);
+      }
+      res.status(constant.httpCode.CREATED).send({uri: `categories/${docs._id}`})
+    })
+  }
+
+  update(req, res, next) {
+    Category.findOneAndUpdate({_id: req.params.categoryId}, req.body, (err, docs) => {
+      if (err) {
+        return next(err);
+      }
+      if (!docs) {
+        return res.sendStatus(constant.httpCode.NOT_FOUND);
+      }
+      return res.sendStatus(constant.httpCode.NO_CONTENT)
     })
   }
 }
+
+module.exports = CategoryController;
