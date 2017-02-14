@@ -50,7 +50,6 @@ class CartController {
         return res.sendStatus(constant.httpCode.NOT_FOUND);
       }
       let data = docs.toJSON();
-      console.log(data)
       data.items = loadItem(data.items);
       res.status(constant.httpCode.OK).send(data);
     })

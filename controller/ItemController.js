@@ -7,7 +7,7 @@ class ItemController {
     async.series({
       items: (cb) => {
         Item.find({})
-            .populate('category')
+            .populate('categoryId')
             .exec(cb)
       },
       totalCount: (cb) => {
@@ -24,7 +24,7 @@ class ItemController {
   getOne(req, res, next) {
     const itemId = req.params.itemId;
     Item.findById(itemId)
-        .populate('category')
+        .populate('categoryId')
         .exec((err, docs) => {
           if (err) {
             return next(err);

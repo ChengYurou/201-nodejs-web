@@ -42,33 +42,18 @@ class CategoryController {
       },
       (doc, done) => {
         if (doc) {
-          done(true, null);
-        } else {
-          Category.findOneAndRemove({_id: category}, (err, docs) => {
-            if (!docs) {
-              done(false, null);
-            }
-            done(err, doc);
-          })
+          return done(true, null);
         }
+        Category.findOneAndRemove({_id: category}, done)
       }
-    ], (err) => {
+    ], (err,doc) => {
       if (err === true) {
-        res.sendStatus(constant.httpCode.BAD_REQUEST);
+        return res.sendStatus(constant.httpCode.BAD_REQUEST);
       }
-      if (err === false) {
-        res.sendStatus(constant.httpCode.NOT_FOUND);
-      }
-      res.sendStatus(constant.httpCode.NO_CONTENT)
-    })
-    Category.findOneAndRemove({_id: req.params.categoryId}, (err, docs) => {
-      if (err) {
-        return next(err);
-      }
-      if (!docs) {
+      if (!doc) {
         return res.sendStatus(constant.httpCode.NOT_FOUND);
       }
-      return res.sendStatus(constant.httpCode.NO_CONTENT);
+      return res.sendStatus(constant.httpCode.NO_CONTENT)
     })
   }
 
