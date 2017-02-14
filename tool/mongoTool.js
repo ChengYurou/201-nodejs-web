@@ -1,33 +1,35 @@
-const mongoose = require('mongoose');
-const rawData = require('./fixture/raw-data');
 const Item = require('../model/item');
 const Category = require('../model/category');
 const Cart = require('../model/cart');
 
-const modelMap = {
-  Item,
+const item = require('./fixture/item');
+const cart = require('./fixture/cart');
+const category = require('./fixture/category');
+
+const modelMap = [
   Cart,
-  Category
+  Category,
+  Item
+];
+const data = {
+  Cart:cart,
+  Category:category,
+  Item:item,
 };
 
-mongoose.connect('mongodb://localhost/supermarket', (err) => {
-  if (err) {
-    console.log('connect error!');
-  } else {
-    console.log('connect success!')
-  }
-});
+const docs = Object.keys(modelMap);
 
-let docs = Object.keys(rawData);
-
-Object.keys(rawData).forEach((key) => {
-  modelMap[key].remove(()=> {
-    modelMap[key].create(rawData[key], ()=> {
-      docs = docs.filter(doc => doc != key);
-      if (docs.length === 0) {
-        console.log('refreshMongo success!')
-        process.exit(0);
-      }
+module.exports = (done) => {
+  let count = 0;
+  modelMap.forEach(Model => {
+    Model.remove({}, () => {
+      Model.create(data[Model.modelName],() => {
+        count ++;
+        if(count === modelMap.length){
+          console.log('refreshMongo success!')
+          done();
+        }
+      })
     })
   })
-})
+};
