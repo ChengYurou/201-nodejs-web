@@ -5,7 +5,7 @@ const constant = require('../../config/constant');
 const app = require('../../app');
 const Category = require('../../model/category');
 
-describe('CategoryController',() => {
+describe('CategoryController', () => {
   it('GET /category should return all category', (done) => {
     request(app)
         .get('/category')
@@ -38,11 +38,10 @@ describe('CategoryController',() => {
         .post('/category')
         .send(category)
         .expect(constant.httpCode.CREATED)
-        // .expect((res) => {
-        //   Category.findOne(category, (err, doc) => {
-        //     res.body.should.eql({uri: `categories/${doc._id}`});
-        //   });
-        // })
+        .expect((res) => {
+          const result = /^categories\/(.*)$/.test(res.body.uri);
+          result.should.eql(true);
+        })
         .end(done);
   });
 

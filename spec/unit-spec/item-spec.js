@@ -37,6 +37,7 @@ describe('ItemController', ()=> {
   });
 
   it('POST /items should return item uri', (done) => {
+    console.log('前面的')
     const item = {
       name: 'test',
       price: 45,
@@ -46,16 +47,16 @@ describe('ItemController', ()=> {
         .post('/items')
         .send(item)
         .expect(constant.httpCode.CREATED)
-        // .expect((res) => {
-        //   Item.findOne(item, (err, doc) => {
-        //     res.body.should.eql({uri: `items/${doc._id}`});
-        //   });
-        // })
+        .expect((res) => {
+          const result = /^items\/(.*)$/.test(res.body.uri);
+          result.should.eql(true);
+        })
         .end(done);
   })
 
 
   it('DELETE /items should delete item', (done) => {
+    console.log('后面的')
     request(app)
         .delete('/items/587f0f2586653d19297d40c2')
         .expect(constant.httpCode.NO_CONTENT)

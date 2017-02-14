@@ -5,7 +5,7 @@ const app = require('../../app');
 const constant = require('../../config/constant');
 const Cart = require('../../model/cart');
 
-describe('CartController',() => {
+describe('CartController', () => {
   it('GET /cart should return all cart', (done) => {
     request(app)
         .get('/cart')
@@ -48,11 +48,10 @@ describe('CartController',() => {
         .post('/cart')
         .send(cart)
         .expect(constant.httpCode.CREATED)
-        // .expect((res) => {
-        //   Cart.findOne(cart, (err, doc) => {
-        //     res.body.should.eql({uri: `carts/${doc._id}`});
-        //   });
-        // })
+        .expect((res) => {
+          const result = /^carts\/(.*)$/.test(res.body.uri);
+          result.should.eql(true);
+        })
         .end(done);
   })
 
